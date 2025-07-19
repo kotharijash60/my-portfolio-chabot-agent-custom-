@@ -1,0 +1,79 @@
+{
+    "name": "Jash Kothari",
+    "occupation": "Full-Stack AI/ML Engineer (Python/JavaScript)",
+    "skills": [
+        "Python",
+        "Machine Learning",
+        "Deep Learning",
+        "Natural Language Processing",
+        "Streamlit",
+        "Ollama",
+        "Data Analysis",
+        "Web Development (Basics)",
+        "Cloud Computing (GCP, AWS basics)",
+        "HTML",
+        "CSS",
+        "Bootstrap",
+        "Sql"
+    ],
+    "education": "Bachelor of Vocational Studies in Artificial Intelligence and Data Science, Thakur College of Engineering and Technology, 2025",
+    "contact_email": "kotharijash60@gmail.com",
+    "linkedin_profile": "https://www.linkedin.com/in/jash-kothari-a10b35368/",
+    "github_profile": "https://github.com/kotharijash60",
+    "portfolio_website": "#",
+    "about_me": "I am a passionate Full-Stack AI/ML Engineer with hands-on experience in developing and deploying intelligent systems. My expertise spans building robust backends with Python (Django) and JavaScript (Express), crafting engaging user interfaces using HTML, CSS, JS, and Bootstrap, and managing data with MySQL. I specialize in leveraging cutting-edge AI technologies like LangChain and Ollama to create sophisticated conversational AI and data-driven applications. I thrive on solving complex problems, transforming innovative ideas into practical, end-to-end solutions, and am always eager to learn and contribute to impactful projects.",
+"projects": [
+    {
+        "name": "Agentic Portfolio Chatbot (Current Project)",
+        "description": "Developed an AI chatbot using a locally hosted Gemma 3 model with Ollama and Streamlit, designed to provide information about my skills and projects, featuring agentic behavior and conversational memory. This project demonstrates my ability to integrate LLMs into interactive web applications."
+    },
+    {
+        "name": "Medical Trust Website (Client Project)",
+        "description": "Developed a WordPress website for the Vaishnav Seva Medical Trust in Kandivali during my first year, enhancing their online presence."
+    },
+    {
+        "name": "Hospital Database Management System (Client Project)",
+        "description": "Designed and implemented a Hospital Database Management application using MS Access for data entry, queries, and reports, with Power BI integration for data visualization."
+    },
+    {
+        "name": "Vocational Studies Department Website (Client Project)",
+        "description": "Building a frontend website for the Department of Vocational Studies using Bootstrap, expected to be deployed soon."
+    },
+    {
+        "name": "Power BI Data Visualization & Prediction Projects",
+        "description": "Created various Power BI projects for visualizing data, performing predictions, and calculating KPIs across diverse datasets like Adventure Works, train data, Dunzo market, and student analysis."
+    },
+    {
+        "name": "Excel Data Analysis Projects",
+        "description": "Developed Excel projects focused on creating charts and performing calculations for student analysis datasets."
+    },
+    {
+        "name": "Basic Linux Command Line Knowledge",
+        "description": "Possess fundamental knowledge of Linux command-line operations, including basic user commands."
+    },
+    {
+        "name": "Machine Learning Algorithms (Theory & Practical)",
+        "description": "Have theoretical knowledge of various Machine Learning algorithms and practical implementation experience with several foundational algorithms."
+    },
+    {
+        "name": "MERN Stack Development",
+        "description": "Proficient in MERN (MongoDB, Express, React, Node.js) stack development. Includes a restaurant backend with MongoDB Atlas (add-to-cart, login/logout), and a Node.js project for handling and displaying hierarchical JSON product data. Currently working on a React project."
+    },
+    {
+        "name": "Django Web Development",
+        "description": "Strong proficiency in Django, having built a To-Do list (CRUD operations), an Income-Expenses tracker with AJAX and email features (ongoing), and a restaurant application with add-to-cart, login, and logout functionalities."
+    },
+    {
+        "name": "C Programming & Data Structures Projects",
+        "description": "Developed various C programming projects in the first year, including a calculator. Have strong knowledge of Data Structures and implemented an airplane booking system using C."
+    },
+    {
+        "name": "Python GUI Projects (Turtle, Tkinter)",
+        "description": "Utilized Python libraries like Turtle and Tkinter to create small GUI projects, including a calculator UI."
+    },
+    {
+        "name": "R Programming for Data Cleaning",
+        "description": "Studied R programming and performed data cleaning on various datasets, such as the IPL 2008 data."
+    }
+]
+}
