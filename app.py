@@ -1,19 +1,16 @@
 import streamlit as st
 import requests
 import json
-import os # Import os module for path handling
+import os
 
 # --- Configuration ---
-PERSONAL_INFO_FILE = "personal_info.json" # Name of your JSON file
-OLLAMA_API_URL = "http://localhost:11434/api/generate" # Default Ollama API endpoint
-GEMMA_MODEL_NAME = "gemma3" # Your Gemma 3 model name (ensure you've pulled it with ollama pull gemma3)
+PERSONAL_INFO_FILE = "personal_info.json"
+OLLAMA_API_URL = "http://localhost:11434/api/generate"
+GEMMA_MODEL_NAME = "gemma3"
 
 # --- Load Personal Information ---
-# @st.cache_data is important for performance. It ensures the JSON is loaded only once
-# unless the file changes or the cache is cleared.
 @st.cache_data(show_spinner="Loading personal data...")
 def load_personal_info(file_path):
-    """Loads personal information from a JSON file."""
     if not os.path.exists(file_path):
         st.error(f"Error: Personal information file '{file_path}' not found. Please create it.")
         return None
@@ -29,13 +26,9 @@ def load_personal_info(file_path):
 
 personal_info = load_personal_info(PERSONAL_INFO_FILE)
 
-# If personal_info couldn't be loaded, stop the app or show an error
 if personal_info is None:
-    st.stop() # Stop the app if crucial data is missing or malformed
+    st.stop()
 
-# Define sections for navigation. The keys are user-friendly names, values are anchor IDs.
-# Streamlit automatically creates anchor IDs for headings by slugifying the text.
-# E.g., "My Skills" becomes "my-skills"
 SECTIONS = {
     "about": "about-jash",
     "skills": "my-skills",
@@ -46,18 +39,15 @@ SECTIONS = {
 
 # --- Ollama Interaction Function ---
 def get_gemma_response(prompt, model_name=GEMMA_MODEL_NAME):
-    """
-    Sends a prompt to the locally running Ollama server and returns the response.
-    """
     headers = {"Content-Type": "application/json"}
     data = {
         "model": model_name,
         "prompt": prompt,
-        "stream": False # Set to True for streaming responses, but False for simplicity here
+        "stream": False
     }
     try:
         response = requests.post(OLLAMA_API_URL, headers=headers, data=json.dumps(data))
-        response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
+        response.raise_for_status()
         return response.json()["response"]
     except requests.exceptions.ConnectionError:
         st.error("Could not connect to Ollama server. Please ensure Ollama is running and Gemma 3 is pulled (`ollama serve` in terminal).")
@@ -68,14 +58,9 @@ def get_gemma_response(prompt, model_name=GEMMA_MODEL_NAME):
 
 # --- Agentic Logic (Personal Knowledge Base & Prompt Engineering) ---
 def create_agentic_prompt(user_query):
-    """
-    Constructs a detailed system prompt for Gemma 3, including personal information
-    and instructions for identity and navigation, to guide its responses.
-    """
     if not personal_info:
         return "I apologize, but my personal information is not available at the moment."
 
-    # Chatbot's identity and purpose
     identity_statement = f"You are an AI chatbot assistant of {personal_info['name']}. You were created by {personal_info['name']} to provide accurate and helpful information about his professional background, skills, education, and projects. Always introduce yourself with this identity if asked 'who are you?' or similar questions."
 
     system_intro = f"""{identity_statement}
@@ -93,58 +78,56 @@ def create_agentic_prompt(user_query):
 
     **Projects:**
     """
+    # Explicitly list projects with their types for Gemma to learn
     for project in personal_info['projects']:
-        system_intro += f"- **{project['name']}**: {project['description']}\n"
+        project_type = "Client Project" if "client project" in project['name'].lower() else "Personal Project"
+        system_intro += f"- **{project['name']} ({project_type})**: {project['description']}\n"
 
-    # Instructions for navigation with clickable links
-    navigation_instructions = f"""
-    If the user asks to go to a specific section (e.g., "show me your skills", "go to projects", "tell me about your education", "take me to contact info", "about you"), respond by providing a clickable Markdown link to that section. Do NOT just give text instructions; provide a link.
 
-    Here are the available sections and their corresponding anchor links:
-    - About Jash: [About Jash](#about-jash)
-    - My Skills: [My Skills](#my-skills)
-    - My Education: [My Education](#my-education)
-    - My Projects: [My Projects](#my-projects)
-    - Contact Jash: [Contact Jash](#contact-jash)
+    general_instructions = """
+    **Primary Goal:** Answer user questions about Jash Kothari's professional profile using the provided information.
 
-    Example response for skills: "You can find a detailed list of Jash's skills here: [My Skills](#my-skills)"
-    Example response for projects: "Sure, check out Jash's projects here: [My Projects](#my-projects)"
-    Example response for contact: "You can reach Jash via the contact section: [Contact Jash](#contact-jash)"
+    **Specific Answering Instructions:**
+    - If a user asks a factual question that can be directly answered from the provided information, *provide the answer directly and concisely*.
+    - **For Projects:** If asked about "client projects", "personal projects", or "different types of projects", list the relevant projects by their name and a brief description, clearly indicating their type (Client/Personal).
+    - If asked for a summary of a section (e.g., "summarize your skills"), provide a brief overview.
 
-    Only provide an anchor link if the user explicitly asks to "go to", "show", "take me to" a section, or if their query is clearly a navigation request. If the question is about the content of a section, summarize the content first, and then offer the link for more details.
+    **Navigation Instructions (for more detail/exploration):**
+    - If the user asks to "go to", "show me", "take me to" a specific section (e.g., "show me your skills", "go to projects", "tell me about your education", "contact info"), provide a clickable Markdown link to that section. Do NOT just give text instructions.
+    - Here are the available sections and their corresponding anchor links:
+        - About Jash: [About Jash](#about-jash)
+        - My Skills: [My Skills](#my-skills)
+        - My Education: [My Education](#my-education)
+        - My Projects: [My Projects](#my-projects)
+        - Contact Jash: [Contact Jash](#contact-jash)
+    - If the user asks for *content* of a section, answer directly first, and *then* you can offer the link for more details.
+
+    **General Chat Behavior:**
+    - Be polite, concise, and helpful.
+    - If the question is a general knowledge question not related to Jash Kothari, answer it to the best of your ability using your general knowledge, but maintain your persona as Jash Kothari's assistant.
+    - Do not invent information about Jash Kothari that is not explicitly provided. If you cannot find the answer in the provided information, simply state that you don't have that specific detail about Jash Kothari.
     """
 
-    system_general_instructions = """
-    When a user asks about specific details related to Jash Kothari, use the provided information directly and factually.
-    If the question is a general knowledge question not related to Jash Kothari, answer it to the best of your ability using your general knowledge, but maintain your persona as Jash Kothari's assistant.
-    Be polite, concise, and helpful. Do not invent information about Jash Kothari that is not explicitly provided. If you cannot find the answer in the provided information, simply state that you don't have that specific detail about Jash Kothari.
-    """
-
-    full_prompt_for_llm = f"{system_intro}\n{navigation_instructions}\n{system_general_instructions}\n\nUser Query: {user_query}"
+    full_prompt_for_llm = f"{system_intro}\n{general_instructions}\n\nUser Query: {user_query}"
     return full_prompt_for_llm
 
 # --- Streamlit UI ---
 
-# Set page config after loading personal_info
 st.set_page_config(page_title=f"{personal_info['name']}'s Agentic Portfolio Chatbot", layout="centered")
 
 st.title(f"Hi, I'm {personal_info['name']}'s AI Assistant!")
 st.write(f"Ask me anything about {personal_info['name']}'s skills, experience, projects, or how to get in touch.")
 
 
-# Initialize chat history
 if "messages" not in st.session_state:
-    # Initial message for the chatbot, introducing itself
     st.session_state.messages = [
-        {"role": "assistant", "content": f"Hello! I am a chatbot assistant of {personal_info['name']}. I was created by {personal_info['name']} to help you learn more about his professional background. How can I assist you today?"}
+        {"role": "assistant", "content": f"Hello! I am a chatbot assistant of {personal_info['name']}. I was created by {personal_info['name']} to help you learn more about his professional background. How can I assist you today? You can ask me about his **skills**, **projects**, **education**, or **how to get in touch**!"}
     ]
 
-# Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# React to user input
 if prompt := st.chat_input(f"Ask me something about {personal_info['name']} or anything else!"):
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -158,48 +141,51 @@ if prompt := st.chat_input(f"Ask me something about {personal_info['name']} or a
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-# --- Display Sections for Navigation (with Anchor Tags) ---
+# --- Display Sections within Expanders for cleaner initial view ---
 
-# About Section
-st.markdown("---")
-st.header("About Jash", anchor=SECTIONS["about"]) # This creates the anchor
-st.write(personal_info['about_me'])
+st.markdown("---") # Visual separator
 
-# Skills Section
-st.markdown("---")
-st.header("My Skills", anchor=SECTIONS["skills"]) # This creates the anchor
-st.markdown(f"- **Programming Languages & Technologies:** {', '.join(personal_info['skills'])}")
-# You can expand on skills here if you want more detail than just a list
+with st.expander("About Jash", expanded=False, anchor=SECTIONS["about"]): # Default to collapsed
+    st.write(personal_info['about_me'])
 
-# Education Section
-st.markdown("---")
-st.header("My Education", anchor=SECTIONS["education"]) # This creates the anchor
-st.markdown(f"- **Degree:** {personal_info['education']}")
-# Add more education details if needed
+with st.expander("My Skills", expanded=False, anchor=SECTIONS["skills"]): # Default to collapsed
+    st.markdown(f"- **Programming Languages & Technologies:** {', '.join(personal_info['skills'])}")
 
-# Projects Section
-st.markdown("---")
-st.header("My Projects", anchor=SECTIONS["projects"]) # This creates the anchor
-for project in personal_info['projects']:
-    st.subheader(f"{project['name']}")
-    st.write(project['description'])
-    st.markdown("---") # Separator for projects, adjust as desired
+with st.expander("My Education", expanded=False, anchor=SECTIONS["education"]): # Default to collapsed
+    st.markdown(f"- **Degree:** {personal_info['education']}")
 
-# Contact Section
-st.markdown("---")
-st.header("Contact Jash", anchor=SECTIONS["contact"]) # This creates the anchor
-st.markdown(f"- **Email:** [{personal_info['contact_email']}](mailto:{personal_info['contact_email']})")
-st.markdown(f"- **LinkedIn:** [{personal_info['linkedin_profile']}]({personal_info['linkedin_profile']})")
-if personal_info['github_profile']:
-    st.markdown(f"- **GitHub:** [{personal_info['github_profile']}]({personal_info['github_profile']})")
-if personal_info['portfolio_website']:
-    st.markdown(f"- **Portfolio:** [{personal_info['portfolio_website']}]({personal_info['portfolio_website']})")
+with st.expander("My Projects", expanded=False, anchor=SECTIONS["projects"]): # Default to collapsed
+    st.write("Here are some of my projects, categorized by type:")
+    client_projects = [p for p in personal_info['projects'] if "client project" in p['name'].lower()]
+    personal_projects = [p for p in personal_info['projects'] if "client project" not in p['name'].lower()]
+
+    if client_projects:
+        st.subheader("Client Projects:")
+        for project in client_projects:
+            st.markdown(f"**{project['name']}**")
+            st.write(project['description'])
+            st.markdown("---")
+    if personal_projects:
+        st.subheader("Personal Projects:")
+        for project in personal_projects:
+            st.markdown(f"**{project['name']}**")
+            st.write(project['description'])
+            st.markdown("---")
+
+
+with st.expander("Contact Jash", expanded=False, anchor=SECTIONS["contact"]): # Default to collapsed
+    st.markdown(f"- **Email:** [{personal_info['contact_email']}](mailto:{personal_info['contact_email']})")
+    st.markdown(f"- **LinkedIn:** [{personal_info['linkedin_profile']}]({personal_info['linkedin_profile']})")
+    if personal_info['github_profile']:
+        st.markdown(f"- **GitHub:** [{personal_info['github_profile']}]({personal_info['github_profile']})")
+    if personal_info['portfolio_website']:
+        st.markdown(f"- **Portfolio:** [{personal_info['portfolio_website']}]({personal_info['portfolio_website']})")
 
 
 # Option to manually trigger a reload of personal info (in sidebar)
 st.sidebar.markdown("---")
 st.sidebar.header("App Management")
 if st.sidebar.button("Reload Personal Info"):
-    st.cache_data.clear() # Clear the cache for load_personal_info
-    st.rerun() # Rerun the app to load fresh data
+    st.cache_data.clear()
+    st.rerun()
     st.sidebar.success("Personal information reloaded!")
