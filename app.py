@@ -1,7 +1,9 @@
-import streamlit as st
-import requests
-import json
-import os
+import json  # Standard library
+import os    # Standard library
+
+import streamlit as st # Third-party library
+import requests        # Third-party library
+
 
 # --- Configuration ---
 PERSONAL_INFO_FILE = "personal_info.json"
