@@ -31,6 +31,9 @@ personal_info = load_personal_info(PERSONAL_INFO_FILE)
 if personal_info is None:
     st.stop()
 
+# Define SECTIONS and their anchor IDs.
+# These will be used by the chatbot for links,
+# even though the sections are not visibly rendered by default.
 SECTIONS = {
     "about": "about-jash",
     "skills": "my-skills",
@@ -93,16 +96,18 @@ def create_agentic_prompt(user_query):
     - If a user asks a factual question that can be directly answered from the provided information, *provide the answer directly and concisely*.
     - **For Projects:** If asked about "client projects", "personal projects", or "different types of projects", list the relevant projects by their name and a brief description, clearly indicating their type (Client/Personal).
     - If asked for a summary of a section (e.g., "summarize your skills"), provide a brief overview.
+    - If asked for contact information, provide the email, LinkedIn, GitHub, and portfolio website directly.
 
-    **Navigation Instructions (for more detail/exploration):**
-    - If the user asks to "go to", "show me", "take me to" a specific section (e.g., "show me your skills", "go to projects", "tell me about your education", "contact info"), provide a clickable Markdown link to that section. Do NOT just give text instructions.
+    **Navigation/Link Instructions (for specific requests ONLY):**
+    - The information is not displayed on the page by default. However, if the user explicitly asks to "go to", "show me", or "take me to" a specific section (e.g., "show me your skills", "go to projects", "tell me about your education", "contact info"), you *can* provide a clickable Markdown link to that section.
+    - **ONLY provide links if explicitly asked to navigate.** Otherwise, provide direct answers.
     - Here are the available sections and their corresponding anchor links:
         - About Jash: [About Jash](#about-jash)
         - My Skills: [My Skills](#my-skills)
         - My Education: [My Education](#my-education)
         - My Projects: [My Projects](#my-projects)
         - Contact Jash: [Contact Jash](#contact-jash)
-    - If the user asks for *content* of a section, answer directly first, and *then* you can offer the link for more details.
+    - If the user asks for *content* of a section, answer directly first, and *then* you can offer the relevant link for "more details" if applicable, even if those details are currently hidden.
 
     **General Chat Behavior:**
     - Be polite, concise, and helpful.
@@ -143,45 +148,15 @@ if prompt := st.chat_input(f"Ask me something about {personal_info['name']} or a
             st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-# --- Display Sections within Expanders for cleaner initial view ---
+# --- HIDDEN SECTIONS WITH ANCHOR TAGS (NO VISIBLE CONTENT BY DEFAULT) ---
+# These are still rendered in the background to provide targets for chatbot's links.
+# They are empty here, but the anchor IDs exist.
 
-st.markdown("---") # Visual separator
-
-with st.expander("About Jash", expanded=False, anchor=SECTIONS["about"]): # Default to collapsed
-    st.write(personal_info['about_me'])
-
-with st.expander("My Skills", expanded=False, anchor=SECTIONS["skills"]): # Default to collapsed
-    st.markdown(f"- **Programming Languages & Technologies:** {', '.join(personal_info['skills'])}")
-
-with st.expander("My Education", expanded=False, anchor=SECTIONS["education"]): # Default to collapsed
-    st.markdown(f"- **Degree:** {personal_info['education']}")
-
-with st.expander("My Projects", expanded=False, anchor=SECTIONS["projects"]): # Default to collapsed
-    st.write("Here are some of my projects, categorized by type:")
-    client_projects = [p for p in personal_info['projects'] if "client project" in p['name'].lower()]
-    personal_projects = [p for p in personal_info['projects'] if "client project" not in p['name'].lower()]
-
-    if client_projects:
-        st.subheader("Client Projects:")
-        for project in client_projects:
-            st.markdown(f"**{project['name']}**")
-            st.write(project['description'])
-            st.markdown("---")
-    if personal_projects:
-        st.subheader("Personal Projects:")
-        for project in personal_projects:
-            st.markdown(f"**{project['name']}**")
-            st.write(project['description'])
-            st.markdown("---")
-
-
-with st.expander("Contact Jash", expanded=False, anchor=SECTIONS["contact"]): # Default to collapsed
-    st.markdown(f"- **Email:** [{personal_info['contact_email']}](mailto:{personal_info['contact_email']})")
-    st.markdown(f"- **LinkedIn:** [{personal_info['linkedin_profile']}]({personal_info['linkedin_profile']})")
-    if personal_info['github_profile']:
-        st.markdown(f"- **GitHub:** [{personal_info['github_profile']}]({personal_info['github_profile']})")
-    if personal_info['portfolio_website']:
-        st.markdown(f"- **Portfolio:** [{personal_info['portfolio_website']}]({personal_info['portfolio_website']})")
+st.markdown("<div id='about-jash'></div>", unsafe_allow_html=True)
+st.markdown("<div id='my-skills'></div>", unsafe_allow_html=True)
+st.markdown("<div id='my-education'></div>", unsafe_allow_html=True)
+st.markdown("<div id='my-projects'></div>", unsafe_allow_html=True)
+st.markdown("<div id='contact-jash'></div>", unsafe_allow_html=True)
 
 
 # Option to manually trigger a reload of personal info (in sidebar)
